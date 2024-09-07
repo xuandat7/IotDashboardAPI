@@ -1,6 +1,8 @@
-import { Controller, Post, Param } from '@nestjs/common';
+import { Controller, Post, Param, Get } from '@nestjs/common';
 import { MqttService } from '../mqtt/mqtt.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+
+
 
 
 @ApiTags('devices')
@@ -18,4 +20,6 @@ export class DevicesController {
         this.mqttService.controlDevice(device, action);
         return { message: `${device} turned ${action}` };
     }
+
 }
+

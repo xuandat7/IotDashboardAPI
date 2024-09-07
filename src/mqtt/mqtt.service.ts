@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Sequelize } from 'sequelize-typescript';
+import { Op } from 'sequelize';
 import * as mqtt from 'mqtt';
 import { SensorData } from '../model/sensor-data.model';
 import { FanLightLog } from '../model/fan-light-log.model';
@@ -81,6 +82,48 @@ export class MqttService {
   controlDevice(device: 'led' | 'fan', action: 'on' | 'off') {
     const topic = `esp8266/${device}`;
     this.client.publish(topic, action);
+  }
+
+  async getFanLightLogData(): Promise<FanLightLog[]> {
+    try {
+      const logs = await FanLightLog.findAll();
+      return logs;
+    } catch (error) {
+      console.error('Error fetching fan light log data:', error);
+      throw error;
+    }
+  }
+
+  //get fan-light-log data by device
+  async getFanLightLogDataByDevice(device: string): Promise<FanLightLog[]> {
+    try {
+      const logs = await FanLightLog.findAll({
+        where: {
+          device,
+        },
+      });
+      return logs;
+    } catch (error) {
+      console.error('Error fetching fan light log data by device:', error);
+      throw error;
+    }
+  }
+
+  //get fan-light-log data by time
+  async getFanLightLogDataByTime(from: Date, to: Date): Promise<FanLightLog[]> {
+    try {
+      const logs = await FanLightLog.findAll({
+        where: {
+          timestamp: {
+            [Op.between]: [from, to],
+          },
+        },
+      });
+      return logs;
+    } catch (error) {
+      console.error('Error fetching fan light log data by time:', error);
+      throw error;
+    }
   }
 
   
