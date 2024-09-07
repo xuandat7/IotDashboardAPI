@@ -4,7 +4,7 @@ import { MqttModule } from './mqtt/mqtt.module';
 import { SensorData } from './model/sensor-data.model';
 import { FanLightLog } from './model/fan-light-log.model';
 import { DevicesController } from './controller/devices.controller';
-import { GetDataController } from './controller/getdata.controller';
+import { GetDataActionController } from './controller/getdata.controller';
 
 @Module({
   imports: [
@@ -22,6 +22,6 @@ import { GetDataController } from './controller/getdata.controller';
     SequelizeModule.forFeature([SensorData, FanLightLog]),
     MqttModule,
   ],
-  controllers: [DevicesController, GetDataController],
+  controllers: [DevicesController, GetDataActionController],
 })
 export class AppModule {}

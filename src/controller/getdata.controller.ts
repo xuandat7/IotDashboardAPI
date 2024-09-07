@@ -6,9 +6,9 @@ import { FanLightLog } from 'src/model/fan-light-log.model';
 
 
 
-@ApiTags('getData')
-@Controller('GetData')
-export class GetDataController {
+@ApiTags('getDataActionHistory')
+@Controller('GetDataAction')
+export class GetDataActionController {
     constructor(private readonly mqttService: MqttService) {}
 
     @ApiOperation({ summary: 'Get history action data' })
