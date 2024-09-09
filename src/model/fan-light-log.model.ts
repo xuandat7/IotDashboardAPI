@@ -2,7 +2,7 @@ import { AutoIncrement, Column, Model, PrimaryKey, Table } from 'sequelize-types
 
 
 @Table({
-  timestamps: false, // Loại bỏ createdAt và updatedAt
+  timestamps: false, 
   tableName: 'FanLightLog', // Tên bảng trong CSDL
 })
 export class FanLightLog extends Model {
@@ -18,5 +18,5 @@ export class FanLightLog extends Model {
   state: string;
 
   @Column
-  timestamp: Date; // Thêm cột timestamp để lưu thời gian thực
+  timestamp: Date;
 }

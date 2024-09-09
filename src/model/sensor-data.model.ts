@@ -1,6 +1,6 @@
 import { Table, Column, Model, DataType } from 'sequelize-typescript';
 
-@Table({ timestamps: false })  // Disable automatic timestamps
+@Table({ timestamps: false }) 
 export class SensorData extends Model {
   @Column({
     type: DataType.FLOAT,
@@ -19,4 +19,10 @@ export class SensorData extends Model {
     allowNull: false,
   })
   light: number;
+
+  @Column({
+    type: DataType.DATE
+  })
+  createdAt: Date;
+
 }

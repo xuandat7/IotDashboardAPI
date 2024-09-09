@@ -12,7 +12,7 @@ export class MqttService {
   constructor(private sequelize: Sequelize) {
     this.client = mqtt.connect('mqtt://broker.emqx.io', {
       username: 'emqx',
-      password: '12345678',
+      password: 'Xuandat1106',
     });
 
     this.client.on('connect', () => {
@@ -35,7 +35,7 @@ export class MqttService {
     try {
       const data = JSON.parse(payload);
 
-      const { temperature, humidity, Light } = data;
+      const { temperature, humidity, Light, createdAt } = data;
       const light = parseInt(Light, 10);
 
 
@@ -44,6 +44,7 @@ export class MqttService {
           temperature,
           humidity,
           light,
+          createdAt
         });
         console.log('Data inserted successfully:', { temperature, humidity, light });
       } else {
