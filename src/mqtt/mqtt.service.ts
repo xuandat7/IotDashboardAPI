@@ -126,5 +126,218 @@ export class MqttService {
     }
   }
 
+  //get data by id
+  async getFanLightLogById(id: number): Promise<FanLightLog> {
+    try {
+      const log = await FanLightLog.findByPk(id);
+      if (!log) {
+        throw new Error('Log not found');
+      }
+      return log;
+    } catch (error) {
+      console.error('Error fetching fan light log by id:', error);
+      throw error;
+    }
+  }
+
+  //get all sensor data
+  async getAllSensorData(): Promise<SensorData[]> {
+    try {
+      const data = await SensorData.findAll();
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data:', error);
+      throw error;
+    }
+  }
+
+  //get all sensor data by time
+  async getSensorDataByTime(from: Date, to: Date): Promise<SensorData[]> {
+    try {
+      const data = await SensorData.findAll({
+        where: {
+          createdAt: {
+            [Op.between]: [from, to],
+          },
+        },
+      });
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data by time:', error);
+      throw error;
+    }
+  }
+
+  //get sensor data by id
+  async getSensorDataById(id: number): Promise<SensorData> {
+    try {
+      const data = await SensorData.findByPk(id);
+      if (!data) {
+        throw new Error('Data not found');
+      }
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data by id:', error);
+      throw error;
+    }
+  }
+
+  //get sensor data by lower than x temperature 
+
+  async getSensorDataByTemperatureLowerThan(temperature: number): Promise<SensorData[]> {
+    try {
+      const data = await SensorData.findAll({
+        where: {
+          temperature: {
+            [Op.lt]: temperature,
+          },
+        },
+      });
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data by temperature lower than:', error);
+      throw error;
+    }
+  }
+
+  //get sensor data by greater than x temperature
+  async getSensorDataByTemperatureGreaterThan(temperature: number): Promise<SensorData[]> {
+    try {
+      const data = await SensorData.findAll({
+        where: {
+          temperature: {
+            [Op.gt]: temperature,
+          },
+        },
+      });
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data by temperature lower than:', error);
+      throw error;
+    }
+  }
+
+  //get sensor data by temperature in range
+  async getSensorDataByTemperatureInRange(min: number, max: number): Promise<SensorData[]> {
+    try {
+      const data = await SensorData.findAll({
+        where: {
+          temperature: {
+            [Op.between]: [min, max],
+          },
+        },
+      });
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data by temperature in range:', error);
+      throw error;
+    }
+  }
+
+  
+
+  //get sensor data lower than x humidity
+  async getSensorDataByHumidityLowerThan(humidity: number): Promise<SensorData[]> {
+    try {
+      const data = await SensorData.findAll({
+        where: {
+          humidity: {
+            [Op.lt]: humidity,
+          },
+        },
+      });
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data by humidity lower than:', error);
+      throw error;
+    }
+  }
+
+  // get sensor data greater than x humidity
+  async getSensorDataByHumidityGreaterThan(humidity: number): Promise<SensorData[]> {
+    try {
+      const data = await SensorData.findAll({
+        where: {
+          humidity: {
+            [Op.gt]: humidity,
+          },
+        },
+      });
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data by humidity greater than:', error);
+      throw error;
+    }
+  }
+
+  // get sensor data by humidity in range
+  async getSensorDataByHumidityInRange(min: number, max: number): Promise<SensorData[]> {
+    try {
+      const data = await SensorData.findAll({
+        where: {
+          humidity: {
+            [Op.between]: [min, max],
+          },
+        },
+      });
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data by humidity in range:', error);
+      throw error;
+    }
+  }
+
+  //get sensor data lower than x light
+  async getSensorDataByLightLowerThan(light: number): Promise<SensorData[]> {
+    try {
+      const data = await SensorData.findAll({
+        where: {
+          light: {
+            [Op.lt]: light,
+          },
+        },
+      });
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data by light lower than:', error);
+      throw error;
+    }
+  }
+
+  //get sensor data greater than x light
+  async getSensorDataByLightGreaterThan(light: number): Promise<SensorData[]> {
+    try {
+      const data = await SensorData.findAll({
+        where: {
+          light: {
+            [Op.gt]: light,
+          },
+        },
+      });
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data by light greater than:', error);
+      throw error;
+    }
+  }
+
+  //get sensor data by light in range
+  async getSensorDataByLightInRange(min: number, max: number): Promise<SensorData[]> {
+    try {
+      const data = await SensorData.findAll({
+        where: {
+          light: {
+            [Op.between]: [min, max],
+          },
+        },
+      });
+      return data;
+    } catch (error) {
+      console.error('Error fetching sensor data by light in range:', error);
+      throw error;
+    }
+  }
+
+
   
 }

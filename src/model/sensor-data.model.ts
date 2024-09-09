@@ -9,7 +9,7 @@ export class SensorData extends Model {
   temperature: number;
 
   @Column({
-    type: DataType.FLOAT,
+    type: DataType.INTEGER,
     allowNull: false,
   })
   humidity: number;
