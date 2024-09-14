@@ -85,10 +85,14 @@ export class MqttService {
     this.client.publish(topic, action);
   }
 
-  async getFanLightLogData(): Promise<FanLightLog[]> {
+  async getFanLightLogData(page: number, limit: number): Promise<{ rows: FanLightLog[], count: number }> {
     try {
-      const logs = await FanLightLog.findAll();
-      return logs;
+      const offset = (page - 1) * limit;
+      const { rows, count } = await FanLightLog.findAndCountAll({
+        offset,
+        limit,
+      });
+      return { rows, count };
     } catch (error) {
       console.error('Error fetching fan light log data:', error);
       throw error;
@@ -142,10 +146,15 @@ export class MqttService {
   }
 
   //get all sensor data
-  async getAllSensorData(): Promise<SensorData[]> {
+  async getAllSensorData(page: number, limit: number): Promise<{rows: SensorData[],  count: number}> {
+
     try {
-      const data = await SensorData.findAll();
-      return data;
+      const offset = (page - 1) * limit;
+      const { rows, count } = await SensorData.findAndCountAll({
+        offset,
+        limit,
+      });
+      return {rows, count};
     } catch (error) {
       console.error('Error fetching sensor data:', error);
       throw error;

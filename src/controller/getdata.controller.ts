@@ -1,4 +1,4 @@
-import { Controller, Post, Param, Get } from '@nestjs/common';
+import { Controller, Post, Param, Get, Query } from '@nestjs/common';
 import { MqttService } from '../mqtt/mqtt.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { FanLightLog } from 'src/model/fan-light-log.model';
@@ -15,9 +15,20 @@ export class GetDataActionController {
     description: 'Fan light log data retrieved successfully',
   })
   @Get('fanlightlog')
-  async getFanLightLogData(): Promise<FanLightLog[]> {
-    const logs = await this.mqttService.getFanLightLogData();
-    return logs;
+  async getFanLightLogData(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ): Promise<FanLightLogResponse> {
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const { rows, count } = await this.mqttService.getFanLightLogData(pageNumber, limitNumber);
+    return {
+      columns: ["id", "device", "state", "timestamp"],
+      rows,
+      count,
+      page: pageNumber,
+      limit: limitNumber,
+    };
   }
 
   //get all action data by name

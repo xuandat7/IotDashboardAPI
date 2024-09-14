@@ -1,6 +1,7 @@
-import { Controller, Post, Param, Get } from '@nestjs/common';
+import { Controller, Post, Param, Get, Query } from '@nestjs/common';
 import { MqttService } from '../mqtt/mqtt.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { SensorDataResponse } from 'src/response/sensorData.interface';
 
 @ApiTags('Sensor')
 @Controller('SensorData')
@@ -11,8 +12,21 @@ export class getSensorDataController {
     @Get()
     @ApiOperation({ summary: 'Get all sensor data' })
     @ApiResponse({ status: 200, description: 'Success' })
-    async getAllSensorData() {
-        return this.mqttService.getAllSensorData();
+    async getAllSensorData(
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10',
+    ): Promise<SensorDataResponse> {
+        const pageNumber = parseInt(page, 10);
+        const limitNumber = parseInt(limit, 10);
+        const { rows, count } = await this.mqttService.getAllSensorData(pageNumber, limitNumber);
+        return {
+            columns: ["id", "temperature", "humidity", "light", "timestamp"],
+            rows,
+            count,
+            page: pageNumber,
+            limit: limitNumber,
+        };
+        
     }
 
     // get sensor data by time
@@ -153,4 +167,3 @@ export class getSensorDataController {
 
 
 }
-
