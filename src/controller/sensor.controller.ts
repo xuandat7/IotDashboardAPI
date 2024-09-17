@@ -1,169 +1,49 @@
-import { Controller, Post, Param, Get, Query } from '@nestjs/common';
-import { MqttService } from '../mqtt/mqtt.service';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { SensorDataResponse } from 'src/response/sensorData.interface';
+import { Controller, Get, Query } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { SensorDataService } from '../service/sensor-data.service';
+import { SensorData } from '../model/sensor-data.model';
 
-@ApiTags('Sensor')
-@Controller('SensorData')
-export class getSensorDataController {
-    constructor(private readonly mqttService: MqttService) {}
+@ApiTags('SensorData')
+@Controller('sensor')
+export class SensorDataController {
+  constructor(private readonly sensorDataService: SensorDataService) {}
 
-    // get all sensor data
-    @Get()
-    @ApiOperation({ summary: 'Get all sensor data' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    async getAllSensorData(
-        @Query('page') page: string = '1',
-        @Query('limit') limit: string = '10',
-    ): Promise<SensorDataResponse> {
-        const pageNumber = parseInt(page, 10);
-        const limitNumber = parseInt(limit, 10);
-        const { rows, count } = await this.mqttService.getAllSensorData(pageNumber, limitNumber);
-        return {
-            columns: ["id", "temperature", "humidity", "light", "timestamp"],
-            rows,
-            count,
-            page: pageNumber,
-            limit: limitNumber,
-        };
-        
-    }
+  @ApiOperation({ summary: 'Get all sensor data' })
+  @ApiResponse({ status: 200, description: 'All sensor data retrieved successfully' })
+  @Get('all')
+  async getAllData(): Promise<SensorData[]> {
+    return await this.sensorDataService.getAllData();
+  }
 
-    // get sensor data by time
-    @Get('/datetime/:from/:to')
-    @ApiOperation({ summary: 'Get sensor data by date' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    @ApiParam({ name: 'from', description: 'Start date', type: 'string', format: 'date', example: '08/09/2024' })
-    @ApiParam({ name: 'to', description: 'End date', type: 'string', format: 'date', example: '09/09/2024' })
-    async getSensorDataByTime(
-        @Param('from') from: string,
-        @Param('to') to: string,
-    ) {
-        const startDate = new Date(from);
-        const endDate = new Date(to);
-        return this.mqttService.getSensorDataByTime(startDate, endDate);
-    }
+  @ApiOperation({ summary: 'Paginate sensor data' })
+  @ApiResponse({ status: 200, description: 'Sensor data paginated successfully' })
+  @Get('paginate')
+  async paginateSensorData(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ): Promise<{ rows: SensorData[], count: number }> {
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    return await this.sensorDataService.paginateSensorData(pageNumber, limitNumber);
+  }
 
-    //get sensor data by id
-    @Get('/id/:id')
-    @ApiOperation({ summary: 'Get sensor data by id' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    @ApiParam({ name: 'id', description: 'Sensor data id', type: 'number' })
-    async getSensorDataById(
-        @Param('id') id: number,
-    ) {
-        return this.mqttService.getSensorDataById(id);
-    }
+  @ApiOperation({ summary: 'Sort sensor data' })
+  @ApiResponse({ status: 200, description: 'Sensor data sorted successfully' })
+  @Get('sort')
+  async sortSensorData(
+    @Query('field') field: string,
+    @Query('order') order: 'ASC' | 'DESC' = 'ASC',
+  ): Promise<{ rows: SensorData[], count: number }> {
+    return await this.sensorDataService.sortSensorData(field, order);
+  }
 
-    //get sensor data lower than x temperature
-    @Get('temperatureLower/:temperature')
-    @ApiOperation({ summary: 'Get sensor data lower than temperature' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    @ApiParam({ name: 'temperature', description: 'Temperature', type: 'number' })
-    async getSensorDataByTemperatureLowerThan(
-        @Param('temperature') temperature: number,
-    ) {
-        return this.mqttService.getSensorDataByTemperatureLowerThan(temperature);
-    }
-
-    //get sensor data greater than x temperature
-    @Get('temperatureGreater/:temperature')
-    @ApiOperation({ summary: 'Get sensor data greater than temperature' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    @ApiParam({ name: 'temperature', description: 'Temperature', type: 'number' })
-    async getSensorDataByTemperatureGreaterThan(
-        @Param('temperature') temperature: number,
-    ) {
-        return this.mqttService.getSensorDataByTemperatureGreaterThan(temperature);
-    }
-
-    //get sensor data by temperature in range
-    @Get('temperatureRange/:from/:to')
-    @ApiOperation({ summary: 'Get sensor data by temperature range' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    @ApiParam({ name: 'from', description: 'Start temperature', type: 'number' })
-    @ApiParam({ name: 'to', description: 'End temperature', type: 'number' })
-    async getSensorDataByTemperatureRange(
-        @Param('from') from: number,
-        @Param('to') to: number,
-    ) {
-        return this.mqttService.getSensorDataByTemperatureInRange(from, to);
-    }
-
-    
-
-    //get sensor data lower than x humidity
-    @Get('humidityLower/:humidity')
-    @ApiOperation({ summary: 'Get sensor data lower than humidity' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    @ApiParam({ name: 'humidity', description: 'Humidity', type: 'number' })
-    async getSensorDataByHumidityLowerThan(
-        @Param('humidity') humidity: number,
-    ) {
-        return this.mqttService.getSensorDataByHumidityLowerThan(humidity);
-    }
-
-    //get saensor data greater than x humidity
-    @Get('humidityGreater/:humidity')
-    @ApiOperation({ summary: 'Get sensor data greater than humidity' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    @ApiParam({ name: 'humidity', description: 'Humidity', type: 'number' })
-    async getSensorDataByHumidityGreaterThan(
-        @Param('humidity') humidity: number,
-    ) {
-        return this.mqttService.getSensorDataByHumidityGreaterThan(humidity);
-    }
-
-    //get sensor data by humidity in range
-    @Get('humidityRange/:from/:to')
-    @ApiOperation({ summary: 'Get sensor data by humidity range' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    @ApiParam({ name: 'from', description: 'Start humidity', type: 'number' })
-    @ApiParam({ name: 'to', description: 'End humidity', type: 'number' })
-    async getSensorDataByHumidityRange(
-        @Param('from') from: number,
-        @Param('to') to: number,
-    ) {
-        return this.mqttService.getSensorDataByHumidityInRange(from, to);
-    }
-
-
-    //get sensor data lower than x light
-    @Get('lightLower/:light')
-    @ApiOperation({ summary: 'Get sensor data lower than light' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    @ApiParam({ name: 'light', description: 'Light', type: 'number' })
-    async getSensorDataByLightLowerThan(
-        @Param('light') light: number,
-    ) {
-        return this.mqttService.getSensorDataByLightLowerThan(light);
-    }
-
-    //get sensor data greater than x light
-    @Get('lightHigher/:light')
-    @ApiOperation({ summary: 'Get sensor data greater than light' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    @ApiParam({ name: 'light', description: 'Light', type: 'number' })
-    async getSensorDataByLightGreaterThan(
-        @Param('light') light: number,
-    ) {
-        return this.mqttService.getSensorDataByLightGreaterThan(light);
-    }
-
-    // get sensor data by light in range
-    @Get('lightRange/:from/:to')
-    @ApiOperation({ summary: 'Get sensor data by light range' })
-    @ApiResponse({ status: 200, description: 'Success' })
-    @ApiParam({ name: 'from', description: 'Start light', type: 'number' })
-    @ApiParam({ name: 'to', description: 'End light', type: 'number' })
-    async getSensorDataByLightRange(
-        @Param('from') from: number,
-        @Param('to') to: number,
-    ) {
-        return this.mqttService.getSensorDataByLightInRange(from, to);
-    }
-
-
-
-
+  @ApiOperation({ summary: 'Search sensor data' })
+  @ApiResponse({ status: 200, description: 'Sensor data searched successfully' })
+  @Get('search')
+  async searchSensorData(
+    @Query('query') query: string,
+    @Query('field') field?: string,
+  ): Promise<SensorData[]> {
+    return await this.sensorDataService.searchSensorData(query, field);
+  }
 }
