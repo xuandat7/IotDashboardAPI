@@ -26,6 +26,7 @@ export class DeviceStatusService {
         state: temStatus || 'off',  // Default to 'off' if no data
         connected: temStatus !== null, // Assuming null means disconnected
       },
+      
     };
   }
 }

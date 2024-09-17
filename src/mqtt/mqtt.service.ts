@@ -12,7 +12,7 @@ export class MqttService {
   private deviceStates = {
     led: 'off',  // Mock state for LED
     fan: 'off', // Mock state for Fan
-    tem: 'off', // Mock state for Temperature
+    tem: 'off', // Mock state for Tem
   };
 
   constructor(private sequelize: Sequelize) {
@@ -138,68 +138,68 @@ export class MqttService {
     };
   }
 
-  // async getFanLightLogData(
-  //   page: number,
-  //   limit: number,
-  // ): Promise<{ rows: FanLightLog[]; count: number }> {
-  //   try {
-  //     const offset = (page - 1) * limit;
-  //     const { rows, count } = await FanLightLog.findAndCountAll({
-  //       offset,
-  //       limit,
-  //     });
-  //     return { rows, count };
-  //   } catch (error) {
-  //     console.error('Error fetching fan light log data:', error);
-  //     throw error;
-  //   }
-  // }
+  async getFanLightLogData(
+    page: number,
+    limit: number,
+  ): Promise<{ rows: FanLightLog[]; count: number }> {
+    try {
+      const offset = (page - 1) * limit;
+      const { rows, count } = await FanLightLog.findAndCountAll({
+        offset,
+        limit,
+      });
+      return { rows, count };
+    } catch (error) {
+      console.error('Error fetching fan light log data:', error);
+      throw error;
+    }
+  }
 
-  // //get fan-light-log data by device
-  // async getFanLightLogDataByDevice(device: string): Promise<FanLightLog[]> {
-  //   try {
-  //     const logs = await FanLightLog.findAll({
-  //       where: {
-  //         device,
-  //       },
-  //     });
-  //     return logs;
-  //   } catch (error) {
-  //     console.error('Error fetching fan light log data by device:', error);
-  //     throw error;
-  //   }
-  // }
+  //get fan-light-log data by device
+  async getFanLightLogDataByDevice(device: string): Promise<FanLightLog[]> {
+    try {
+      const logs = await FanLightLog.findAll({
+        where: {
+          device,
+        },
+      });
+      return logs;
+    } catch (error) {
+      console.error('Error fetching fan light log data by device:', error);
+      throw error;
+    }
+  }
 
-  // //get fan-light-log data by time
-  // async getFanLightLogDataByTime(from: Date, to: Date): Promise<FanLightLog[]> {
-  //   try {
-  //     const logs = await FanLightLog.findAll({
-  //       where: {
-  //         timestamp: {
-  //           [Op.between]: [from, to],
-  //         },
-  //       },
-  //     });
-  //     return logs;
-  //   } catch (error) {
-  //     console.error('Error fetching fan light log data by time:', error);
-  //     throw error;
-  //   }
-  // }
+  //get fan-light-log data by time
+  async getFanLightLogDataByTime(from: Date, to: Date): Promise<FanLightLog[]> {
+    try {
+      const logs = await FanLightLog.findAll({
+        where: {
+          timestamp: {
+            [Op.between]: [from, to],
+          },
+        },
+      });
+      return logs;
+    } catch (error) {
+      console.error('Error fetching fan light log data by time:', error);
+      throw error;
+    }
+  }
 
-  // //get data by id
-  // async getFanLightLogById(id: number): Promise<FanLightLog> {
-  //   try {
-  //     const log = await FanLightLog.findByPk(id);
-  //     if (!log) {
-  //       throw new Error('Log not found');
-  //     }
-  //     return log;
-  //   } catch (error) {
-  //     console.error('Error fetching fan light log by id:', error);
-  //     throw error;
-  //   }
-  // }
+  //get data by id
+  async getFanLightLogById(id: number): Promise<FanLightLog> {
+    try {
+      const log = await FanLightLog.findByPk(id);
+      if (!log) {
+        throw new Error('Log not found');
+      }
+      return log;
+    } catch (error) {
+      console.error('Error fetching fan light log by id:', error);
+      throw error;
+    }
+  }
 
   //get all sensor data
   // async getAllSensorData(

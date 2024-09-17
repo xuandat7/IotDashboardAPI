@@ -1,49 +1,43 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Query, Param } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { SensorDataService } from '../service/sensor-data.service';
-import { SensorData } from '../model/sensor-data.model';
+import { SensorDataResponse } from 'src/response/sensorData.interface';
+import { SensorData } from 'src/model/sensor-data.model';
 
-@ApiTags('SensorData')
-@Controller('sensor')
+@ApiTags('Sensor')
+@Controller('SensorData')
 export class SensorDataController {
   constructor(private readonly sensorDataService: SensorDataService) {}
 
+  // Get all sensor data with pagination
+  @Get()
   @ApiOperation({ summary: 'Get all sensor data' })
-  @ApiResponse({ status: 200, description: 'All sensor data retrieved successfully' })
-  @Get('all')
-  async getAllData(): Promise<SensorData[]> {
-    return await this.sensorDataService.getAllData();
-  }
-
-  @ApiOperation({ summary: 'Paginate sensor data' })
-  @ApiResponse({ status: 200, description: 'Sensor data paginated successfully' })
-  @Get('paginate')
-  async paginateSensorData(
+  @ApiResponse({ status: 200, description: 'Success' })
+  async getAllSensorData(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
-  ): Promise<{ rows: SensorData[], count: number }> {
+  ): Promise<SensorDataResponse> {
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
-    return await this.sensorDataService.paginateSensorData(pageNumber, limitNumber);
+    const { rows, count } = await this.sensorDataService.paginateSensorData(
+      pageNumber,
+      limitNumber,
+    );
+    return {
+      columns: ['id', 'temperature', 'humidity', 'light', 'timestamp'],
+      rows,
+      count,
+      page: pageNumber,
+      limit: limitNumber,
+    };
   }
 
-  @ApiOperation({ summary: 'Sort sensor data' })
-  @ApiResponse({ status: 200, description: 'Sensor data sorted successfully' })
-  @Get('sort')
-  async sortSensorData(
-    @Query('field') field: string,
-    @Query('order') order: 'ASC' | 'DESC' = 'ASC',
-  ): Promise<{ rows: SensorData[], count: number }> {
-    return await this.sensorDataService.sortSensorData(field, order);
-  }
-
-  @ApiOperation({ summary: 'Search sensor data' })
-  @ApiResponse({ status: 200, description: 'Sensor data searched successfully' })
-  @Get('search')
-  async searchSensorData(
-    @Query('query') query: string,
-    @Query('field') field?: string,
-  ): Promise<SensorData[]> {
-    return await this.sensorDataService.searchSensorData(query, field);
+  // get all data
+  @Get('allData')
+  @ApiOperation({ summary: 'Get all sensor data' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  async getAllData(): Promise<SensorData[]> {
+    const rows = await this.sensorDataService.getAllData();
+    return rows;
   }
 }
