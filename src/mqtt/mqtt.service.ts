@@ -130,21 +130,23 @@ export class MqttService {
     if (!state) {
       throw new Error('State is null or undefined');
     }
-
+    if(state == 'on' || state == 'off'){
+      await FanLightLog.create({
+        device: device.substring(8),
+        state, // Lưu hành động bật/tắt
+        timestamp: currentTimestamp,
+      });
+  
+      // Trả về phản hồi thành công
+      return {
+        message: `Device ${device} turned ${state}`,
+        device,
+        state,
+        timestamp: currentTimestamp,
+      };
+    }
     // Lưu dữ liệu vào cơ sở dữ liệu
-    await FanLightLog.create({
-      device: device.substring(8),
-      state: state, // Lưu hành động bật/tắt
-      timestamp: currentTimestamp,
-    });
-
-    // Trả về phản hồi thành công
-    return {
-      message: `Device ${device} turned ${state}`,
-      device,
-      state,
-      timestamp: currentTimestamp,
-    };
+    
   }
 
   async getFanLightLogData(
