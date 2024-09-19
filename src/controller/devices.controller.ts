@@ -8,14 +8,14 @@ export class DevicesController {
   constructor(private readonly mqttService: MqttService) {}
 
   @ApiOperation({ summary: 'Control device' })
-  @ApiResponse({ status: 200, description: 'Device controlled successfully' })
+  @ApiResponse({ status: 200, description: 'Device command sent successfully' })
   @ApiResponse({ status: 400, description: 'Device is disconnected' })
   @Post(':device/:action')
   async controlDevice(
-    @Param('device') device: 'led' | 'fan',
+    @Param('device') device: 'led' | 'fan' | 'tem',
     @Param('action') action: 'on' | 'off',
   ) {
-    // Kiểm tra trạng thái kết nối của thiết bị
+    // Check device connection status
     const deviceStatus = await this.mqttService.getDeviceStatus();
 
     if (deviceStatus.status === 'disconnected') {
@@ -25,14 +25,13 @@ export class DevicesController {
       };
     }
 
-    // Điều khiển thiết bị nếu đã kết nối
+    // Send control command
     const result = this.mqttService.controlDevice(device, action);
 
     return {
       statusCode: 200,
-      message: result.message,
-      success: result.success,
+      message: (await result).message,
+      success: (await result).success,
     };
   }
-  
 }

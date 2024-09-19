@@ -28,10 +28,8 @@ export class MqttService {
       this.client.subscribe('esp8266/led');
       this.client.subscribe('esp8266/fan');
       this.client.subscribe('esp8266/tem');
-      this.client.subscribe('esp8266/status'); // Subscribe to the new status topic
-      this.client.subscribe('device/led/state');
-      this.client.subscribe('device/fan/state');
-      this.client.subscribe('device/tem/state');
+      this.client.subscribe('esp8266/status');
+
     });
 
     this.client.publish('esp8266/status', 'disconnected');
@@ -40,7 +38,7 @@ export class MqttService {
       this.client.publish('esp8266/status', 'connected');
       if (topic === 'mcu8266/tmp') {
         this.handleSensorData(message.toString());
-        this.client.publish('esp8266/status', 'connected');
+        
       } else if (topic === 'esp8266/led' || topic === 'esp8266/fan' || topic === 'esp8266/tem') {
         this.logFanLightAction(topic, message.toString());
         this.client.publish('esp8266/status', 'connected');
@@ -68,7 +66,7 @@ export class MqttService {
     }
   }
   
-  controlDevice(device: 'led' | 'fan' | 'tem', action: 'on' | 'off') {
+  async controlDevice(device: 'led' | 'fan' | 'tem', action: 'on' | 'off') {
     if (!this.deviceConnected) {
       console.log(`Cannot control ${device}. Device is disconnected.`);
       return {
@@ -76,16 +74,27 @@ export class MqttService {
         success: false,
       };
     }
-
+  
     const topic = `esp8266/${device}`;
+    
+    // Publish action to MQTT broker
     this.client.publish(topic, action);
-    this.deviceStates[device] = action;
+  
+    // Lắng nghe thông điệp trả về từ broker để kiểm tra
+    this.client.on('message', (receivedTopic, message) => {
+      if (receivedTopic === topic && message.toString() === action) {
+        this.deviceStates[device] = action;  // Cập nhật trạng thái thiết bị
+        console.log(`Received correct confirmation for ${device}: ${action}`);
+      }
+    });
+  
     console.log(`Sent command to ${device}: ${action}`);
     return {
       message: `Successfully sent ${action} command to ${device}.`,
       success: true,
     };
   }
+  
   async handleSensorData(payload: string) {
     try {
       const data = JSON.parse(payload);
@@ -201,239 +210,5 @@ export class MqttService {
     }
   }
 
-  //get all sensor data
-  // async getAllSensorData(
-  //   page: number,
-  //   limit: number,
-  // ): Promise<{ rows: SensorData[]; count: number }> {
-  //   try {
-  //     const offset = (page - 1) * limit;
-  //     const { rows, count } = await SensorData.findAndCountAll({
-  //       order: [['createdAt', 'DESC']],
-  //       offset,
-  //       limit,
-  //     });
-  //     return { rows, count };
-  //   } catch (error) {
-  //     console.error('Error fetching sensor data:', error);
-  //     throw error;
-  //   }
-  // }
-
-  // //get all sensor data by time
-  // async getSensorDataByTime(from: Date, to: Date): Promise<SensorData[]> {
-  //   try {
-  //     const data = await SensorData.findAll({
-  //       where: {
-  //         createdAt: {
-  //           [Op.between]: [from, to],
-  //         },
-  //       },
-  //     });
-  //     return data;
-  //   } catch (error) {
-  //     console.error('Error fetching sensor data by time:', error);
-  //     throw error;
-  //   }
-  // }
-
-  // //get sensor data by id
-  // async getSensorDataById(id: number): Promise<SensorData> {
-  //   try {
-  //     const data = await SensorData.findByPk(id);
-  //     if (!data) {
-  //       throw new Error('Data not found');
-  //     }
-  //     return data;
-  //   } catch (error) {
-  //     console.error('Error fetching sensor data by id:', error);
-  //     throw error;
-  //   }
-  // }
-
-  // //get sensor data by lower than x temperature
-
-  // async getSensorDataByTemperatureLowerThan(
-  //   temperature: number,
-  // ): Promise<SensorData[]> {
-  //   try {
-  //     const data = await SensorData.findAll({
-  //       where: {
-  //         temperature: {
-  //           [Op.lt]: temperature,
-  //         },
-  //       },
-  //     });
-  //     return data;
-  //   } catch (error) {
-  //     console.error(
-  //       'Error fetching sensor data by temperature lower than:',
-  //       error,
-  //     );
-  //     throw error;
-  //   }
-  // }
-
-  // //get sensor data by greater than x temperature
-  // async getSensorDataByTemperatureGreaterThan(
-  //   temperature: number,
-  // ): Promise<SensorData[]> {
-  //   try {
-  //     const data = await SensorData.findAll({
-  //       where: {
-  //         temperature: {
-  //           [Op.gt]: temperature,
-  //         },
-  //       },
-  //     });
-  //     return data;
-  //   } catch (error) {
-  //     console.error(
-  //       'Error fetching sensor data by temperature lower than:',
-  //       error,
-  //     );
-  //     throw error;
-  //   }
-  // }
-
-  // //get sensor data by temperature in range
-  // async getSensorDataByTemperatureInRange(
-  //   min: number,
-  //   max: number,
-  // ): Promise<SensorData[]> {
-  //   try {
-  //     const data = await SensorData.findAll({
-  //       where: {
-  //         temperature: {
-  //           [Op.between]: [min, max],
-  //         },
-  //       },
-  //     });
-  //     return data;
-  //   } catch (error) {
-  //     console.error(
-  //       'Error fetching sensor data by temperature in range:',
-  //       error,
-  //     );
-  //     throw error;
-  //   }
-  // }
-
-  // //get sensor data lower than x humidity
-  // async getSensorDataByHumidityLowerThan(
-  //   humidity: number,
-  // ): Promise<SensorData[]> {
-  //   try {
-  //     const data = await SensorData.findAll({
-  //       where: {
-  //         humidity: {
-  //           [Op.lt]: humidity,
-  //         },
-  //       },
-  //     });
-  //     return data;
-  //   } catch (error) {
-  //     console.error(
-  //       'Error fetching sensor data by humidity lower than:',
-  //       error,
-  //     );
-  //     throw error;
-  //   }
-  // }
-
-  // // get sensor data greater than x humidity
-  // async getSensorDataByHumidityGreaterThan(
-  //   humidity: number,
-  // ): Promise<SensorData[]> {
-  //   try {
-  //     const data = await SensorData.findAll({
-  //       where: {
-  //         humidity: {
-  //           [Op.gt]: humidity,
-  //         },
-  //       },
-  //     });
-  //     return data;
-  //   } catch (error) {
-  //     console.error(
-  //       'Error fetching sensor data by humidity greater than:',
-  //       error,
-  //     );
-  //     throw error;
-  //   }
-  // }
-
-  // // get sensor data by humidity in range
-  // async getSensorDataByHumidityInRange(
-  //   min: number,
-  //   max: number,
-  // ): Promise<SensorData[]> {
-  //   try {
-  //     const data = await SensorData.findAll({
-  //       where: {
-  //         humidity: {
-  //           [Op.between]: [min, max],
-  //         },
-  //       },
-  //     });
-  //     return data;
-  //   } catch (error) {
-  //     console.error('Error fetching sensor data by humidity in range:', error);
-  //     throw error;
-  //   }
-  // }
-
-  // //get sensor data lower than x light
-  // async getSensorDataByLightLowerThan(light: number): Promise<SensorData[]> {
-  //   try {
-  //     const data = await SensorData.findAll({
-  //       where: {
-  //         light: {
-  //           [Op.lt]: light,
-  //         },
-  //       },
-  //     });
-  //     return data;
-  //   } catch (error) {
-  //     console.error('Error fetching sensor data by light lower than:', error);
-  //     throw error;
-  //   }
-  // }
-
-  // //get sensor data greater than x light
-  // async getSensorDataByLightGreaterThan(light: number): Promise<SensorData[]> {
-  //   try {
-  //     const data = await SensorData.findAll({
-  //       where: {
-  //         light: {
-  //           [Op.gt]: light,
-  //         },
-  //       },
-  //     });
-  //     return data;
-  //   } catch (error) {
-  //     console.error('Error fetching sensor data by light greater than:', error);
-  //     throw error;
-  //   }
-  // }
-
-  // //get sensor data by light in range
-  // async getSensorDataByLightInRange(
-  //   min: number,
-  //   max: number,
-  // ): Promise<SensorData[]> {
-  //   try {
-  //     const data = await SensorData.findAll({
-  //       where: {
-  //         light: {
-  //           [Op.between]: [min, max],
-  //         },
-  //       },
-  //     });
-  //     return data;
-  //   } catch (error) {
-  //     console.error('Error fetching sensor data by light in range:', error);
-  //     throw error;
-  //   }
-  // }
+  
 }
