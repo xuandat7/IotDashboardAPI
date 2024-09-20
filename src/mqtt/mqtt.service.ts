@@ -4,7 +4,7 @@ import { Op } from 'sequelize';
 import * as mqtt from 'mqtt';
 import { SensorData } from '../model/sensor-data.model';
 import { FanLightLog } from '../model/fan-light-log.model';
-import moment from 'moment-timezone';
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class MqttService {
@@ -42,7 +42,7 @@ export class MqttService {
         
       } else if (topic === 'esp8266/led' || topic === 'esp8266/fan' || topic === 'esp8266/tem') {
         this.logFanLightAction(topic, message.toString());
-        this.client.publish('esp8266/status', 'connected');
+
       } else if (topic === 'esp8266/status') {
         if (message.toString() === 'connected') {
           this.deviceConnected = true;
@@ -125,30 +125,36 @@ export class MqttService {
 
 
   async logFanLightAction(device: string, state: string) {
-    const currentTimestamp = new Date(); // Lấy thời gian hiện tại
-
-    // Kiểm tra giá trị của state để chắc chắn không bị null
+    // Get the current timestamp in UTC
+    const currentTimestamp = moment().utc().toDate();
+  
+    // Ensure the state is not null or undefined
     if (!state) {
       throw new Error('State is null or undefined');
     }
-    if(state == 'on' || state == 'off'){
-      await FanLightLog.create({
-        device: device.substring(8),
-        state, // Lưu hành động bật/tắt
-        timestamp: currentTimestamp,
+  
+    // Only log if the state is 'on' or 'off'
+    if (state === 'on' || state === 'off') {
+      // Create a new log entry in the FanLightLog table
+      await this.sequelize.getRepository(FanLightLog).create({
+        device,
+        state,
+        timestamp: currentTimestamp, // Save timestamp in UTC
       });
   
-      // Trả về phản hồi thành công
+      // Return a success response
       return {
         message: `Device ${device} turned ${state}`,
         device,
         state,
-        timestamp: currentTimestamp,
+        timestamp: moment.tz(currentTimestamp, 'Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss'),
       };
     }
-    // Lưu dữ liệu vào cơ sở dữ liệu
-    
+  
+    // Throw an error if the state is not 'on' or 'off'
+    throw new Error('Invalid state. Only "on" or "off" are allowed.');
   }
+  
 
   async getFanLightLogData(
     page: number,

@@ -1,4 +1,5 @@
-import { AutoIncrement, Column, Model, PrimaryKey, Table } from 'sequelize-typescript';
+import * as moment from 'moment-timezone';
+import { AutoIncrement, Column, DataType, Model, PrimaryKey, Table } from 'sequelize-typescript';
 
 
 @Table({
@@ -17,6 +18,12 @@ export class FanLightLog extends Model {
   @Column
   state: string;
 
-  @Column
+  @Column({
+    type: DataType.DATE,
+    get() {
+      const time = this.getDataValue('timestamp');
+      return moment.tz(time, 'Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss');
+    }
+  })
   timestamp: Date;
 }
