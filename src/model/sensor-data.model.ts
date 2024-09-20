@@ -1,6 +1,7 @@
 import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import * as moment from 'moment-timezone';
 
-@Table({ timestamps: false }) 
+@Table({ timestamps: false })
 export class SensorData extends Model {
   @Column({
     type: DataType.FLOAT,
@@ -21,8 +22,11 @@ export class SensorData extends Model {
   light: number;
 
   @Column({
-    type: DataType.DATE
+    type: DataType.DATE,
+    get() {
+      const time = this.getDataValue('createdAt');
+      return moment.tz(time, 'Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss');
+    }
   })
   createdAt: Date;
-
 }

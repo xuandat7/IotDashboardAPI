@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { Op } from 'sequelize';
+import { Op, fn, col, where, literal } from 'sequelize';
 import { SensorData } from '../model/sensor-data.model';
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class SensorDataService {
-  //get all plain data
+  // Get all plain data
   async getAllPlainData(): Promise<any> {
     try {
       return await SensorData.findAll();
@@ -14,74 +15,112 @@ export class SensorDataService {
     }
   }
 
-  // Lấy tất cả dữ liệu cảm biến với phân trang
+  // Pagination only
   async paginateSensorData(
     pageNumber: number,
-    limitNumber: number
-  ): Promise<{ rows: SensorData[], count: number }> {
-    const offset = (pageNumber - 1) * limitNumber;
-    const { rows, count } = await SensorData.findAndCountAll({
-      offset,
-      limit: limitNumber,
-    });
-    return { rows, count };
+    limitNumber: number,
+  ): Promise<{ rows: SensorData[]; count: number }> {
+    try {
+      const offset = (pageNumber - 1) * limitNumber;
+      const { rows, count } = await SensorData.findAndCountAll({
+        offset,
+        limit: limitNumber,
+      });
+      return { rows, count };
+    } catch (error) {
+      console.error('Error during pagination:', error);
+      throw error;
+    }
   }
 
-  // Tìm kiếm và phân trang
+  // Search and pagination
   async searchAndPaginateSensorData(
     query: string,
     field: string | undefined,
     pageNumber: number,
     limitNumber: number,
-  ): Promise<{ rows: SensorData[], count: number }> {
-    const offset = (pageNumber - 1) * limitNumber;
+  ): Promise<{ rows: SensorData[]; count: number }> {
+    try {
+      const offset = (pageNumber - 1) * limitNumber;
 
-    let whereCondition;
-    if (field) {
-      whereCondition = {
-        [field]: {
-          [Op.like]: `%${query}%`,
-        },
-      };
-    } else {
-      whereCondition = {
-        [Op.or]: [
-          { temperature: { [Op.like]: `%${query}%` } },
-          { humidity: { [Op.like]: `%${query}%` } },
-          { light: { [Op.like]: `%${query}%` } },
-          { createdAt: { [Op.like]: `%${query}%` } },
-        ],
-      };
+      let whereCondition;
+      if (field) {
+        if (field === 'createdAt') {
+          whereCondition = where(
+            fn(
+              'DATE_FORMAT',
+              fn('CONVERT_TZ', col('createdAt'), '+00:00', '+07:00'),
+              '%Y-%m-%d %H:%i:%s',
+            ),
+            { [Op.like]: `%${query}%` },
+          );
+        } else {
+          whereCondition = {
+            [field]: {
+              [Op.like]: `%${query}%`,
+            },
+          };
+        }
+      } else {
+        whereCondition = {
+          [Op.or]: [
+            { temperature: { [Op.like]: `%${query}%` } },
+            { humidity: { [Op.like]: `%${query}%` } },
+            { light: { [Op.like]: `%${query}%` } },
+            where(
+              fn(
+                'DATE_FORMAT',
+                fn('CONVERT_TZ', col('createdAt'), '+00:00', '+07:00'),
+                '%Y-%m-%d %H:%i:%s',
+              ),
+              { [Op.like]: `%${query}%` },
+            ),
+          ],
+        };
+      }
+
+      const { rows, count } = await SensorData.findAndCountAll({
+        where: whereCondition,
+        offset,
+        limit: limitNumber,
+      });
+
+      return { rows, count };
+    } catch (error) {
+      console.error('Error during search and pagination:', error);
+      throw error;
     }
-
-    const { rows, count } = await SensorData.findAndCountAll({
-      where: whereCondition,
-      offset,
-      limit: limitNumber,
-    });
-
-    return { rows, count };
   }
 
-  // Sắp xếp và phân trang
+  // Sort and pagination
   async sortAndPaginateSensorData(
     sortField: string,
     sortOrder: 'ASC' | 'DESC',
     pageNumber: number,
     limitNumber: number,
-  ): Promise<{ rows: SensorData[], count: number }> {
-    const offset = (pageNumber - 1) * limitNumber;
+  ): Promise<{ rows: SensorData[]; count: number }> {
+    try {
+      const offset = (pageNumber - 1) * limitNumber;
 
-    const { rows, count } = await SensorData.findAndCountAll({
-      order: [[sortField, sortOrder]],
-      offset,
-      limit: limitNumber,
-    });
+      const order =
+        sortField === 'createdAt'
+          ? [[literal(`CONVERT_TZ(createdAt, '+00:00', '+07:00')`), sortOrder]]
+          : [[sortField, sortOrder]];
 
-    return { rows, count };
+      const { rows, count } = await SensorData.findAndCountAll({
+        order: order as any,
+        offset,
+        limit: limitNumber,
+      });
+
+      return { rows, count };
+    } catch (error) {
+      console.error('Error during sort and pagination:', error);
+      throw error;
+    }
   }
 
-  // Kết hợp phân trang, sắp xếp và tìm kiếm
+  // Combined pagination, sort, and search
   async paginateAndSortSensorData(
     pageNumber: number,
     limitNumber: number,
@@ -89,36 +128,70 @@ export class SensorDataService {
     sortOrder: 'ASC' | 'DESC',
     search: string | undefined,
     field: string | undefined,
-  ): Promise<{ rows: SensorData[], count: number }> {
-    const offset = (pageNumber - 1) * limitNumber;
+  ): Promise<{ rows: SensorData[]; count: number }> {
+    try {
+      const offset = (pageNumber - 1) * limitNumber;
+      let whereCondition: any = {};
 
-    let whereCondition;
-    if (search) {
-      if (field) {
-        whereCondition = {
-          [field]: {
-            [Op.like]: `%${search}%`,
-          },
-        };
-      } else {
-        whereCondition = {
-          [Op.or]: [
+      if (search) {
+        if (field) {
+          if (field === 'createdAt') {
+            whereCondition = where(
+              fn(
+                'DATE_FORMAT',
+                fn('CONVERT_TZ', col('createdAt'), '+00:00', '+07:00'),
+                '%Y-%m-%d %H:%i:%s',
+              ),
+              { [Op.like]: `%${search}%` },
+            );
+          } else {
+            whereCondition[field] = {
+              [Op.like]: `%${search}%`,
+            };
+          }
+        } else {
+          whereCondition[Op.or] = [
             { temperature: { [Op.like]: `%${search}%` } },
             { humidity: { [Op.like]: `%${search}%` } },
             { light: { [Op.like]: `%${search}%` } },
-            { createdAt: { [Op.like]: `%${search}%` } },
-          ],
-        };
+            where(
+              fn(
+                'DATE_FORMAT',
+                fn('CONVERT_TZ', col('createdAt'), '+00:00', '+07:00'),
+                '%Y-%m-%d %H:%i:%s',
+              ),
+              { [Op.like]: `%${search}%` },
+            ),
+          ];
+        }
       }
+
+      console.log('Query Parameters:', {
+        sortField,
+        sortOrder,
+        pageNumber,
+        limitNumber,
+        search,
+        field,
+        whereCondition,
+      });
+
+      const order =
+        sortField === 'createdAt'
+          ? [[literal(`CONVERT_TZ(createdAt, '+00:00', '+07:00')`), sortOrder]]
+          : [[sortField, sortOrder]];
+
+      const { rows, count } = await SensorData.findAndCountAll({
+        where: whereCondition,
+        order: order as any,
+        offset,
+        limit: limitNumber,
+      });
+
+      return { rows, count };
+    } catch (error) {
+      console.error('Error during pagination, sort, and search:', error);
+      throw error;
     }
-
-    const { rows, count } = await SensorData.findAndCountAll({
-      where: whereCondition,
-      order: [[sortField, sortOrder]],
-      offset,
-      limit: limitNumber,
-    });
-
-    return { rows, count };
   }
 }

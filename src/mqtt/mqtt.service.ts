@@ -4,6 +4,7 @@ import { Op } from 'sequelize';
 import * as mqtt from 'mqtt';
 import { SensorData } from '../model/sensor-data.model';
 import { FanLightLog } from '../model/fan-light-log.model';
+import moment from 'moment-timezone';
 
 @Injectable()
 export class MqttService {
@@ -107,7 +108,7 @@ export class MqttService {
           temperature,
           humidity,
           light,
-          createdAt,
+          createdAt: moment().utc().toDate()
         });
         console.log('Data inserted successfully:', {
           temperature,
