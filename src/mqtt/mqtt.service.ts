@@ -18,8 +18,9 @@ export class MqttService {
 
   constructor(private sequelize: Sequelize) {
     this.client = mqtt.connect('mqtt://broker.emqx.io', {
-      username: 'emqx',
-      password: 'Xuandat1106',
+      username: process.env.MQTT_USERNAME,
+      password: process.env.MQTT_PASSWORD,
+      rejectUnauthorized: true,
     });
 
     this.client.on('connect', () => {
@@ -30,13 +31,14 @@ export class MqttService {
       this.client.subscribe('esp8266/fan');
       this.client.subscribe('esp8266/tem');
       this.client.subscribe('esp8266/status');
+      this.deviceConnected = true;
 
     });
 
-    this.client.publish('esp8266/status', 'disconnected');
+    
 
     this.client.on('message', (topic, message) => {
-      this.client.publish('esp8266/status', 'connected');
+      
       if (topic === 'mcu8266/tmp') {
         this.handleSensorData(message.toString());
         
@@ -136,8 +138,9 @@ export class MqttService {
     // Only log if the state is 'on' or 'off'
     if (state === 'on' || state === 'off') {
       // Create a new log entry in the FanLightLog table
+      const deviceName = device.split('/')[1];
       await this.sequelize.getRepository(FanLightLog).create({
-        device,
+        device: deviceName,
         state,
         timestamp: currentTimestamp, // Save timestamp in UTC
       });
