@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { SensorDataService } from '../service/sensor-data.service';
 import { SensorDataResponse } from 'src/response/sensorData.interface';
 import { SensorData } from 'src/model/sensor-data.model';
@@ -9,7 +9,7 @@ import { SensorData } from 'src/model/sensor-data.model';
 export class SensorDataController {
   constructor(private readonly sensorDataService: SensorDataService) {}
   //get all plain data
-  @Get('all')
+  @Get('allPlain')
   @ApiOperation({ summary: 'Get all sensor data' })
   @ApiResponse({ status: 200, description: 'Success' })
   async getAllPlainData(): Promise<SensorData[]> {
@@ -19,6 +19,42 @@ export class SensorDataController {
   // Get paginated, sorted, and filtered sensor data
   @Get()
   @ApiOperation({ summary: 'Get paginated, sorted, and filtered sensor data' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of items per page',
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'sortField',
+    required: false,
+    description: 'Field to sort by',
+    example: 'createdAt',
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    description: 'Sort order (ASC or DESC)',
+    example: 'ASC',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search query',
+    example: '2024',
+  })
+  @ApiQuery({
+    name: 'field',
+    required: false,
+    description: 'Field to search in',
+    example: 'createdAt',
+  })
   @ApiResponse({ status: 200, description: 'Success' })
   async getPaginatedSortedSensorData(
     @Query('page') page: string = '1',
@@ -50,85 +86,85 @@ export class SensorDataController {
   }
 
   // Get paginated sensor data (only pagination)
-  @Get('paginate')
-  @ApiOperation({ summary: 'Get paginated sensor data' })
-  @ApiResponse({ status: 200, description: 'Success' })
-  async paginateSensorData(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-  ): Promise<SensorDataResponse> {
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
+  // @Get('paginate')
+  // @ApiOperation({ summary: 'Get paginated sensor data' })
+  // @ApiResponse({ status: 200, description: 'Success' })
+  // async paginateSensorData(
+  //   @Query('page') page: string = '1',
+  //   @Query('limit') limit: string = '10',
+  // ): Promise<SensorDataResponse> {
+  //   const pageNumber = parseInt(page, 10);
+  //   const limitNumber = parseInt(limit, 10);
 
-    const { rows, count } = await this.sensorDataService.paginateSensorData(
-      pageNumber,
-      limitNumber,
-    );
+  //   const { rows, count } = await this.sensorDataService.paginateSensorData(
+  //     pageNumber,
+  //     limitNumber,
+  //   );
 
-    return {
-      columns: ['id', 'temperature', 'humidity', 'light', 'createdAt'],
-      rows,
-      count,
-      page: pageNumber,
-      limit: limitNumber,
-    };
-  }
+  //   return {
+  //     columns: ['id', 'temperature', 'humidity', 'light', 'createdAt'],
+  //     rows,
+  //     count,
+  //     page: pageNumber,
+  //     limit: limitNumber,
+  //   };
+  // }
 
-  // Search sensor data with pagination
-  @Get('search')
-  @ApiOperation({ summary: 'Search sensor data with pagination' })
-  @ApiResponse({ status: 200, description: 'Success' })
-  async searchSensorData(
-    @Query('query') query: string,
-    @Query('field') field?: string, // Optional field to search by
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-  ): Promise<SensorDataResponse> {
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
+  // // Search sensor data with pagination
+  // @Get('search')
+  // @ApiOperation({ summary: 'Search sensor data with pagination' })
+  // @ApiResponse({ status: 200, description: 'Success' })
+  // async searchSensorData(
+  //   @Query('query') query: string,
+  //   @Query('field') field?: string, // Optional field to search by
+  //   @Query('page') page: string = '1',
+  //   @Query('limit') limit: string = '10',
+  // ): Promise<SensorDataResponse> {
+  //   const pageNumber = parseInt(page, 10);
+  //   const limitNumber = parseInt(limit, 10);
 
-    const { rows, count } = await this.sensorDataService.searchAndPaginateSensorData(
-      query,
-      field,
-      pageNumber,
-      limitNumber,
-    );
+  //   const { rows, count } = await this.sensorDataService.searchAndPaginateSensorData(
+  //     query,
+  //     field,
+  //     pageNumber,
+  //     limitNumber,
+  //   );
 
-    return {
-      columns: ['id', 'temperature', 'humidity', 'light', 'createdAt'],
-      rows,
-      count,
-      page: pageNumber,
-      limit: limitNumber,
-    };
-  }
+  //   return {
+  //     columns: ['id', 'temperature', 'humidity', 'light', 'createdAt'],
+  //     rows,
+  //     count,
+  //     page: pageNumber,
+  //     limit: limitNumber,
+  //   };
+  // }
 
-  // Sort sensor data with pagination
-  @Get('sort')
-  @ApiOperation({ summary: 'Sort sensor data with pagination' })
-  @ApiResponse({ status: 200, description: 'Success' })
-  async sortSensorData(
-    @Query('sortField') sortField: string = 'createdAt', // Default sorting by createdAt
-    @Query('sortOrder') sortOrder: 'ASC' | 'DESC' = 'DESC', // Default order is DESC
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-  ): Promise<SensorDataResponse> {
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
+  // // Sort sensor data with pagination
+  // @Get('sort')
+  // @ApiOperation({ summary: 'Sort sensor data with pagination' })
+  // @ApiResponse({ status: 200, description: 'Success' })
+  // async sortSensorData(
+  //   @Query('sortField') sortField: string = 'createdAt', // Default sorting by createdAt
+  //   @Query('sortOrder') sortOrder: 'ASC' | 'DESC' = 'DESC', // Default order is DESC
+  //   @Query('page') page: string = '1',
+  //   @Query('limit') limit: string = '10',
+  // ): Promise<SensorDataResponse> {
+  //   const pageNumber = parseInt(page, 10);
+  //   const limitNumber = parseInt(limit, 10);
 
-    const { rows, count } = await this.sensorDataService.sortAndPaginateSensorData(
-      sortField,
-      sortOrder,
-      pageNumber,
-      limitNumber,
-    );
+  //   const { rows, count } = await this.sensorDataService.sortAndPaginateSensorData(
+  //     sortField,
+  //     sortOrder,
+  //     pageNumber,
+  //     limitNumber,
+  //   );
 
-    return {
-      columns: ['id', 'temperature', 'humidity', 'light', 'createdAt'],
-      rows,
-      count,
-      page: pageNumber,
-      limit: limitNumber,
-    };
-  }
+  //   return {
+  //     columns: ['id', 'temperature', 'humidity', 'light', 'createdAt'],
+  //     rows,
+  //     count,
+  //     page: pageNumber,
+  //     limit: limitNumber,
+  //   };
+  // }
 }

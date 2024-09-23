@@ -7,14 +7,14 @@ import { MqttService } from '../mqtt/mqtt.service';
 export class MqttController {
   constructor(private readonly mqttService: MqttService) {}
 
-  @ApiOperation({ summary: 'Get device status' })
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully retrieved device status',
-  })
-  @Get('status')
-  async getDeviceStatus() {
-    return this.mqttService.getDeviceStatus();
-  }
+  // @ApiOperation({ summary: 'Get device status' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Successfully retrieved device status',
+  // })
+  // @Get('status')
+  // async getDeviceStatus() {
+  //   return this.mqttService.getDeviceStatus();
+  // }
   // Other methods...
 }
