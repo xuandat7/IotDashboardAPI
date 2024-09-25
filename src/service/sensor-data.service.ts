@@ -142,25 +142,26 @@ export class SensorDataService {
                 fn('CONVERT_TZ', col('createdAt'), '+00:00', '+07:00'),
                 '%Y-%m-%d %H:%i:%s',
               ),
-              { [Op.like]: `%${search}%` },
+              { [Op.like]: `%${search.trim()}%` },
             );
           } else {
             whereCondition[field] = {
-              [Op.like]: `%${search}%`,
+              [Op.like]: `%${search.trim()}%`,
             };
           }
         } else {
           whereCondition[Op.or] = [
-            { temperature: { [Op.like]: `%${search}%` } },
-            { humidity: { [Op.like]: `%${search}%` } },
-            { light: { [Op.like]: `%${search}%` } },
+            where(col('temperature'), 'LIKE', `%${search.trim()}%`),
+            where(col('humidity'), 'LIKE', `%${search.trim()}%`),
+            where(col('light'), 'LIKE', `%${search.trim()}%`),
             where(
               fn(
                 'DATE_FORMAT',
                 fn('CONVERT_TZ', col('createdAt'), '+00:00', '+07:00'),
                 '%Y-%m-%d %H:%i:%s',
               ),
-              { [Op.like]: `%${search}%` },
+              'LIKE',
+              `%${search.trim()}%`,
             ),
           ];
         }
