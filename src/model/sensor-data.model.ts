@@ -29,4 +29,10 @@ export class SensorData extends Model {
     }
   })
   createdAt: Date;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  windSpeed: number;
 }

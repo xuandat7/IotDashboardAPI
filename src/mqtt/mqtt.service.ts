@@ -15,6 +15,7 @@ export class MqttService {
     fan: 'off', // Mock state for Fan
     tem: 'off', // Mock state for Tem
   };
+  private latestWindSpeed: number = 0;
 
   constructor(private sequelize: Sequelize) {
     this.client = mqtt.connect('mqtt://broker.emqx.io', {
@@ -27,9 +28,10 @@ export class MqttService {
       console.log('Connected to MQTT broker');
       // Subscribe to the necessary topics
       this.client.subscribe('mcu8266/tmp');
-      this.client.subscribe('esp8266/led');
-      this.client.subscribe('esp8266/fan');
-      this.client.subscribe('esp8266/tem');
+      this.client.subscribe('datesp8266/led');
+      this.client.subscribe('datesp8266/fan');
+      this.client.subscribe('datesp8266/tem');
+      this.client.subscribe('esp8266/wind');
       this.client.subscribe('esp8266/status');
       this.deviceConnected = true;
 
@@ -42,7 +44,7 @@ export class MqttService {
       if (topic === 'mcu8266/tmp') {
         this.handleSensorData(message.toString());
         
-      } else if (topic === 'esp8266/led' || topic === 'esp8266/fan' || topic === 'esp8266/tem') {
+      } else if (topic === 'datesp8266/led' || topic === 'datesp8266/fan' || topic === 'datesp8266/tem') {
         this.logFanLightAction(topic, message.toString());
 
       } else if (topic === 'esp8266/status') {
@@ -51,6 +53,11 @@ export class MqttService {
         } else if (message.toString() === 'disconnected') {
           this.deviceConnected = false;
         }
+      }
+      else if (topic === 'esp8266/wind') {
+        this.latestWindSpeed = parseFloat(message.toString());
+        // console.log('Wind speed:', message.toString());
+
       }
      
       
@@ -78,7 +85,7 @@ export class MqttService {
       };
     }
   
-    const topic = `esp8266/${device}`;
+    const topic = `datesp8266/${device}`;
     
     // Publish action to MQTT broker
     this.client.publish(topic, action);
@@ -101,8 +108,8 @@ export class MqttService {
   async handleSensorData(payload: string) {
     try {
       const data = JSON.parse(payload);
-
-      const { temperature, humidity, Light, createdAt } = data;
+      // console.log(data);     
+      const { temperature, humidity, Light, windSpeed } = data;
       const light = parseInt(Light, 10);
 
       if (temperature != null && humidity != null && Light != null) {
@@ -110,12 +117,14 @@ export class MqttService {
           temperature,
           humidity,
           light,
-          createdAt: moment().utc().toDate()
+          createdAt: moment().utc().toDate(),
+          windSpeed
         });
         console.log('Data inserted successfully:', {
           temperature,
           humidity,
           light,
+          windSpeed
         });
       } else {
         console.error('Invalid sensor data:', { temperature, humidity, light });
@@ -176,51 +185,11 @@ export class MqttService {
     }
   }
 
-  //get fan-light-log data by device
-  async getFanLightLogDataByDevice(device: string): Promise<FanLightLog[]> {
-    try {
-      const logs = await FanLightLog.findAll({
-        where: {
-          device,
-        },
-      });
-      return logs;
-    } catch (error) {
-      console.error('Error fetching fan light log data by device:', error);
-      throw error;
-    }
+  //get wind speed from topic 'esp8266/wind'
+  getLatestWindSpeed(): number {
+    return this.latestWindSpeed;
   }
 
-  //get fan-light-log data by time
-  async getFanLightLogDataByTime(from: Date, to: Date): Promise<FanLightLog[]> {
-    try {
-      const logs = await FanLightLog.findAll({
-        where: {
-          timestamp: {
-            [Op.between]: [from, to],
-          },
-        },
-      });
-      return logs;
-    } catch (error) {
-      console.error('Error fetching fan light log data by time:', error);
-      throw error;
-    }
-  }
-
-  //get data by id
-  async getFanLightLogById(id: number): Promise<FanLightLog> {
-    try {
-      const log = await FanLightLog.findByPk(id);
-      if (!log) {
-        throw new Error('Log not found');
-      }
-      return log;
-    } catch (error) {
-      console.error('Error fetching fan light log by id:', error);
-      throw error;
-    }
-  }
-
+  
   
 }

@@ -15,6 +15,30 @@ export class SensorDataService {
     }
   }
 
+  // get all data that temperature higher than 30
+  async getTemperatureHigherThan30(): Promise<{rows: SensorData[], count: number }> {
+    try {
+      const today = moment().tz('Asia/Ho_Chi_Minh').startOf('day');
+      const tomorrow = moment(today).add(1, 'day');
+
+      const {rows, count}  = await SensorData.findAndCountAll({
+        where: {
+          temperature: {
+            [Op.gt]: 28.5,
+          },
+          createdAt: {
+            [Op.gte]: today.toDate(),
+            [Op.lt]: tomorrow.toDate(),
+          },
+        },
+      });
+      return {rows, count};
+    } catch (error) {
+      console.error('Error fetching sensor data:', error);
+      throw error;
+    }
+  }
+
   // Pagination only
   async paginateSensorData(
     pageNumber: number,
@@ -34,91 +58,91 @@ export class SensorDataService {
   }
 
   // Search and pagination
-  async searchAndPaginateSensorData(
-    query: string,
-    field: string | undefined,
-    pageNumber: number,
-    limitNumber: number,
-  ): Promise<{ rows: SensorData[]; count: number }> {
-    try {
-      const offset = (pageNumber - 1) * limitNumber;
+  // async searchAndPaginateSensorData(
+  //   query: string,
+  //   field: string | undefined,
+  //   pageNumber: number,
+  //   limitNumber: number,
+  // ): Promise<{ rows: SensorData[]; count: number }> {
+  //   try {
+  //     const offset = (pageNumber - 1) * limitNumber;
 
-      let whereCondition;
-      if (field) {
-        if (field === 'createdAt') {
-          whereCondition = where(
-            fn(
-              'DATE_FORMAT',
-              fn('CONVERT_TZ', col('createdAt'), '+00:00', '+07:00'),
-              '%Y-%m-%d %H:%i:%s',
-            ),
-            { [Op.like]: `%${query}%` },
-          );
-        } else {
-          whereCondition = {
-            [field]: {
-              [Op.like]: `%${query}%`,
-            },
-          };
-        }
-      } else {
-        whereCondition = {
-          [Op.or]: [
-            { temperature: { [Op.like]: `%${query}%` } },
-            { humidity: { [Op.like]: `%${query}%` } },
-            { light: { [Op.like]: `%${query}%` } },
-            where(
-              fn(
-                'DATE_FORMAT',
-                fn('CONVERT_TZ', col('createdAt'), '+00:00', '+07:00'),
-                '%Y-%m-%d %H:%i:%s',
-              ),
-              { [Op.like]: `%${query}%` },
-            ),
-          ],
-        };
-      }
+  //     let whereCondition;
+  //     if (field) {
+  //       if (field === 'createdAt') {
+  //         whereCondition = where(
+  //           fn(
+  //             'DATE_FORMAT',
+  //             fn('CONVERT_TZ', col('createdAt'), '+00:00', '+07:00'),
+  //             '%Y-%m-%d %H:%i:%s',
+  //           ),
+  //           { [Op.like]: `%${query}%` },
+  //         );
+  //       } else {
+  //         whereCondition = {
+  //           [field]: {
+  //             [Op.like]: `%${query}%`,
+  //           },
+  //         };
+  //       }
+  //     } else {
+  //       whereCondition = {
+  //         [Op.or]: [
+  //           { temperature: { [Op.like]: `%${query}%` } },
+  //           { humidity: { [Op.like]: `%${query}%` } },
+  //           { light: { [Op.like]: `%${query}%` } },
+  //           where(
+  //             fn(
+  //               'DATE_FORMAT',
+  //               fn('CONVERT_TZ', col('createdAt'), '+00:00', '+07:00'),
+  //               '%Y-%m-%d %H:%i:%s',
+  //             ),
+  //             { [Op.like]: `%${query}%` },
+  //           ),
+  //         ],
+  //       };
+  //     }
 
-      const { rows, count } = await SensorData.findAndCountAll({
-        where: whereCondition,
-        offset,
-        limit: limitNumber,
-      });
+  //     const { rows, count } = await SensorData.findAndCountAll({
+  //       where: whereCondition,
+  //       offset,
+  //       limit: limitNumber,
+  //     });
 
-      return { rows, count };
-    } catch (error) {
-      console.error('Error during search and pagination:', error);
-      throw error;
-    }
-  }
+  //     return { rows, count };
+  //   } catch (error) {
+  //     console.error('Error during search and pagination:', error);
+  //     throw error;
+  //   }
+  // }
 
   // Sort and pagination
-  async sortAndPaginateSensorData(
-    sortField: string,
-    sortOrder: 'ASC' | 'DESC',
-    pageNumber: number,
-    limitNumber: number,
-  ): Promise<{ rows: SensorData[]; count: number }> {
-    try {
-      const offset = (pageNumber - 1) * limitNumber;
+  // async sortAndPaginateSensorData(
+  //   sortField: string,
+  //   sortOrder: 'ASC' | 'DESC',
+  //   pageNumber: number,
+  //   limitNumber: number,
+  // ): Promise<{ rows: SensorData[]; count: number }> {
+  //   try {
+  //     const offset = (pageNumber - 1) * limitNumber;
 
-      const order =
-        sortField === 'createdAt'
-          ? [[literal(`CONVERT_TZ(createdAt, '+00:00', '+07:00')`), sortOrder]]
-          : [[sortField, sortOrder]];
+  //     const order =
+  //       sortField === 'createdAt'
+  //         ? [[literal(`CONVERT_TZ(createdAt, '+00:00', '+07:00')`), sortOrder]]
+  //         : [[sortField, sortOrder]];
 
-      const { rows, count } = await SensorData.findAndCountAll({
-        order: order as any,
-        offset,
-        limit: limitNumber,
-      });
+  //     const { rows, count } = await SensorData.findAndCountAll({
+  //       order: order as any,
+  //       offset,
+  //       limit: limitNumber,
+  //     });
 
-      return { rows, count };
-    } catch (error) {
-      console.error('Error during sort and pagination:', error);
-      throw error;
-    }
-  }
+  //     return { rows, count };
+  //   } catch (error) {
+  //     console.error('Error during sort and pagination:', error);
+  //     throw error;
+  //   }
+  // }
 
   // Combined pagination, sort, and search
   async paginateAndSortSensorData(
@@ -195,4 +219,6 @@ export class SensorDataService {
       throw error;
     }
   }
+  
+
 }

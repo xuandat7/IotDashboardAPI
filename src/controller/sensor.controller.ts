@@ -3,11 +3,13 @@ import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { SensorDataService } from '../service/sensor-data.service';
 import { SensorDataResponse } from 'src/response/sensorData.interface';
 import { SensorData } from 'src/model/sensor-data.model';
+import { MqttService } from 'src/mqtt/mqtt.service';
 
 @ApiTags('Sensor')
 @Controller('SensorData')
 export class SensorDataController {
   constructor(private readonly sensorDataService: SensorDataService) {}
+  
   //get all plain data
   @Get('allPlain')
   @ApiOperation({ summary: 'Get all sensor data' })
@@ -85,86 +87,21 @@ export class SensorDataController {
     };
   }
 
-  // Get paginated sensor data (only pagination)
-  // @Get('paginate')
-  // @ApiOperation({ summary: 'Get paginated sensor data' })
+  // get all data that temperature higher than 30
+  // @Get('temperature')
+  // @ApiOperation({ summary: 'Get all sensor data that temperature higher than 30' })
   // @ApiResponse({ status: 200, description: 'Success' })
-  // async paginateSensorData(
-  //   @Query('page') page: string = '1',
-  //   @Query('limit') limit: string = '10',
-  // ): Promise<SensorDataResponse> {
-  //   const pageNumber = parseInt(page, 10);
-  //   const limitNumber = parseInt(limit, 10);
-
-  //   const { rows, count } = await this.sensorDataService.paginateSensorData(
-  //     pageNumber,
-  //     limitNumber,
-  //   );
-
-  //   return {
-  //     columns: ['id', 'temperature', 'humidity', 'light', 'createdAt'],
-  //     rows,
-  //     count,
-  //     page: pageNumber,
-  //     limit: limitNumber,
-  //   };
+  // async getTemperatureHigherThan30(): Promise<{rows: SensorData[], count: number }> {
+  //   return this.sensorDataService.getTemperatureHigherThan30();
   // }
 
-  // // Search sensor data with pagination
-  // @Get('search')
-  // @ApiOperation({ summary: 'Search sensor data with pagination' })
+  // get all data that humidity higher than 70
+  // @Get('humidity')
+  // @ApiOperation({ summary: 'Get all sensor data that humidity higher than 70' })
   // @ApiResponse({ status: 200, description: 'Success' })
-  // async searchSensorData(
-  //   @Query('query') query: string,
-  //   @Query('field') field?: string, // Optional field to search by
-  //   @Query('page') page: string = '1',
-  //   @Query('limit') limit: string = '10',
-  // ): Promise<SensorDataResponse> {
-  //   const pageNumber = parseInt(page, 10);
-  //   const limitNumber = parseInt(limit, 10);
-
-  //   const { rows, count } = await this.sensorDataService.searchAndPaginateSensorData(
-  //     query,
-  //     field,
-  //     pageNumber,
-  //     limitNumber,
-  //   );
-
-  //   return {
-  //     columns: ['id', 'temperature', 'humidity', 'light', 'createdAt'],
-  //     rows,
-  //     count,
-  //     page: pageNumber,
-  //     limit: limitNumber,
-  //   };
+  // async getHumidityHigherThan70(): Promise<{rows: SensorData[], count: number }> {
+  //   return this.sensorDataService.getHumidityHigherThan70();
   // }
 
-  // // Sort sensor data with pagination
-  // @Get('sort')
-  // @ApiOperation({ summary: 'Sort sensor data with pagination' })
-  // @ApiResponse({ status: 200, description: 'Success' })
-  // async sortSensorData(
-  //   @Query('sortField') sortField: string = 'createdAt', // Default sorting by createdAt
-  //   @Query('sortOrder') sortOrder: 'ASC' | 'DESC' = 'DESC', // Default order is DESC
-  //   @Query('page') page: string = '1',
-  //   @Query('limit') limit: string = '10',
-  // ): Promise<SensorDataResponse> {
-  //   const pageNumber = parseInt(page, 10);
-  //   const limitNumber = parseInt(limit, 10);
-
-  //   const { rows, count } = await this.sensorDataService.sortAndPaginateSensorData(
-  //     sortField,
-  //     sortOrder,
-  //     pageNumber,
-  //     limitNumber,
-  //   );
-
-  //   return {
-  //     columns: ['id', 'temperature', 'humidity', 'light', 'createdAt'],
-  //     rows,
-  //     count,
-  //     page: pageNumber,
-  //     limit: limitNumber,
-  //   };
-  // }
+  
 }
